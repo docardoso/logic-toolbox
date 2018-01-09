@@ -3,8 +3,10 @@ import boolean
 
 bl = boolean.BooleanAlgebra()
 
-
 def shorten(sentence):
+    if type(sentence) == str:
+        sentence = bl.parse(sentence)
+
     k = set()
     k.add(sentence)
     for i in sentence.args:
@@ -15,8 +17,11 @@ def shorten(sentence):
             k.update(shorten(i))
     return sorted(k, key=lambda x: len(x.__str__()))
 
-# Assumes sentence will be the list returned by shorten
+
 def truthtable(sentence):
+    if type(sentence) == str:
+        sentence = shorten(sentence)
+
     x, y = [], []
     for i in sentence:
         if i.iscanonical:
@@ -44,7 +49,6 @@ def DNF(table):
             part = '&'.join(temp)
             parts.append('(' + part + ')')
     
-    dnf = '|'.join(parts)
+    dnf = bl.parse('|'.join(parts))
     
     return dnf
-            
