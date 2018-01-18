@@ -7,15 +7,15 @@ def shorten(sentence):
     if type(sentence) == str:
         sentence = bl.parse(sentence)
 
-    k = set()
-    k.add(sentence)
+    final = set()
+    final.add(sentence)
     for i in sentence.args:
-        k.add(i)
+        final.add(i)
         if i.iscanonical:
             continue
         else:    
-            k.update(shorten(i))
-    return sorted(k, key=lambda x: len(x.__str__()))
+            final.update(shorten(i))
+    return sorted(final, key=lambda x: len(x.__str__()))
 
 
 def truthtable(sentence):
@@ -31,8 +31,13 @@ def truthtable(sentence):
     
     return Truths(x, y)
 
-# Receives the table returned by truthtable
-def DNF(table):
+# Receives the table returned by truthtable OR just a sentence
+def DNF(sentence):
+    if type(sentence) == str:
+        table = truthtable(sentence)
+    else:
+        table = sentence
+
     tablelist = table.table()
     parts = []
     
@@ -52,3 +57,30 @@ def DNF(table):
     dnf = bl.parse('|'.join(parts))
     
     return dnf
+
+def CNF(sentence):
+    if type(sentence) == str:
+        table = truthtable(sentence)
+    else:
+        table = sentence
+
+
+    tablelist = table.table()
+    parts = []
+    
+    for row in tablelist[1:]:
+        if row[-1] == 0:
+            temp = []
+
+            for i in range(len(table.base)):
+                if row[i] == 1:
+                    temp.append('~'+tablelist[0][i])
+                else:
+                    temp.append(tablelist[0][i])
+            
+            part = '|'.join(temp)
+            parts.append('(' + part + ')')
+    
+    cnf = bl.parse('&'.join(parts))
+
+    return cnf
