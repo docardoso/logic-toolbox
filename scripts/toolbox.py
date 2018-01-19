@@ -4,6 +4,15 @@ import boolean
 bl = boolean.BooleanAlgebra()
 
 def shorten(sentence):
+    """
+    Receives a logical sentence.
+    Returns a list with each sub-item contained in a sentence. 
+    Those items types are found in the boolean.py library.
+
+    Example:
+        >>> print(shorten((not a and b) or (a and b)))
+        [Symbol('b'), Symbol('a'), NOT(Symbol('a')), AND(Symbol('a'), Symbol('b')), AND(NOT(Symbol('a')), Symbol('b')), OR(AND(NOT(Symbol('a')), Symbol('b')), AND(Symbol('a'), Symbol('b')))]
+    """
     if type(sentence) == str:
         sentence = bl.parse(sentence)
 
@@ -19,6 +28,27 @@ def shorten(sentence):
 
 
 def truthtable(sentence):
+    """
+    Receives either a setence or an list returned by 'shorten'.
+
+    Returns a Truth object which can be used to either get a list representation of truth table
+    or a string representation.
+
+    Example:
+        >>> x = truthtable('(not a and b) or (a and b)')
+        >>> print(x)
+        +---+---+----+-----+------+--------------+
+        | a | b | ~a | a&b | ~a&b | (~a&b)|(a&b) |
+        +---+---+----+-----+------+--------------+
+        | 0 | 0 | 1 |  0  |  0   |      0       |
+        | 0 | 1 | 1 |  0  |  1   |      1       |
+        | 1 | 0 | 0 |  0  |  0   |      0       |
+        | 1 | 1 | 0 |  1  |  0   |      1       |
+        +---+---+----+-----+------+--------------+
+        >>> print(x.table)
+        [['b', 'a', '~a', 'a&b', '~a&b', '(~a&b)|(a&b)'], [0, 0, 1, 0, 0, 0], 
+        [0, 1, 0, 0, 0, 0], [1, 0, 1, 0, 1, 1], [1, 1, 0, 1, 0, 1]]
+    """
     if type(sentence) == str:
         sentence = shorten(sentence)
 
@@ -31,8 +61,16 @@ def truthtable(sentence):
     
     return Truths(x, y)
 
-# Receives the table returned by truthtable OR just a sentence
+
 def DNF(sentence):
+    """
+    Receives either a sentence or the object returned by 'truthtable'.
+    Returns the Disjunctive Normal Form of the provided sentence.
+
+    Example:
+        >>> DNF('(p and not q) or r')
+        (~p&~q&r)|(~p&q&r)|(p&~q&~r)|(p&~q&r)|(p&q&r)
+    """
     if type(sentence) == str:
         table = truthtable(sentence)
     else:
@@ -59,6 +97,14 @@ def DNF(sentence):
     return dnf
 
 def CNF(sentence):
+    """
+    Receives either a sentence or the object returned by 'truthtable'.
+    Returns the Conjunctive Normal Form of the provided sentence.
+
+    Example:
+        >>> CNF('(p and not q) or r')
+        (r|q|p)&(r|~q|p)&(r|~q|~p)
+    """
     if type(sentence) == str:
         table = truthtable(sentence)
     else:
