@@ -1,5 +1,6 @@
 from truths import Truths
 import boolean
+import random
 
 bl = boolean.BooleanAlgebra()
 
@@ -60,7 +61,6 @@ def truthtable(sentence):
             y.append(i.__str__())
     
     return Truths(x, y)
-
 
 def DNF(sentence):
     """
@@ -130,3 +130,18 @@ def CNF(sentence):
     cnf = bl.parse('&'.join(parts))
 
     return cnf
+
+def generate(nvars):
+    alphabet = 'abcdefghijklmopqrstuvwxyz'
+    chosen_ones = random.sample(alphabet, nvars)
+    
+    sentence = ''
+    for i in range(int((random.random()*10)/2)):
+        sentence += '(' + random.choice(chosen_ones) + random.choice('|&') + random.choice(chosen_ones) + ')' + random.choice('|&')
+    
+    return(sentence[:-1])
+        
+
+
+
+
