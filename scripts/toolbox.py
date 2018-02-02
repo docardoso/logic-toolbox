@@ -62,6 +62,7 @@ def truthtable(sentence):
     
     return Truths(x, y)
 
+# Erros quando a sentença nunca é verdadeira
 def DNF(sentence):
     """
     Receives either a sentence or the object returned by 'truthtable'.
@@ -70,6 +71,8 @@ def DNF(sentence):
     Example:
         >>> DNF('(p and not q) or r')
         (~p&~q&r)|(~p&q&r)|(p&~q&~r)|(p&~q&r)|(p&q&r)
+
+    -> If the sentence is always false the function will return False instead of another sentence
     """
     if type(sentence) == str:
         table = truthtable(sentence)
@@ -91,11 +94,14 @@ def DNF(sentence):
             
             part = '&'.join(temp)
             parts.append('(' + part + ')')
-    
-    dnf = bl.parse('|'.join(parts))
-    
-    return dnf
+    try:
+        dnf = bl.parse('|'.join(parts))
+        return dnf
 
+    except boolean.boolean.ParseError:
+        return False
+
+# Errors quando a sentença sempre é verdadeira
 def CNF(sentence):
     """
     Receives either a sentence or the object returned by 'truthtable'.
@@ -104,6 +110,8 @@ def CNF(sentence):
     Example:
         >>> CNF('(p and not q) or r')
         (r|q|p)&(r|~q|p)&(r|~q|~p)
+
+    -> If the sentence is always true the function will return True instead of another sentence
     """
     if type(sentence) == str:
         table = truthtable(sentence)
@@ -127,16 +135,19 @@ def CNF(sentence):
             part = '|'.join(temp)
             parts.append('(' + part + ')')
     
-    cnf = bl.parse('&'.join(parts))
-
-    return cnf
+    try:
+        cnf = bl.parse('&'.join(parts))
+        return cnf
+    except boolean.boolean.ParseError:
+        return True
 
 def generate(nvars):
     alphabet = 'abcdefghijklmopqrstuvwxyz'
     chosen_ones = random.sample(alphabet, nvars)
+    chosen_ones.extend(['~'+i for i in chosen_ones])
     
     sentence = ''
-    for i in range(int((random.random()*10)/2)):
+    for i in range(int((random.uniform(1, 5)))):
         sentence += '(' + random.choice(chosen_ones) + random.choice('|&') + random.choice(chosen_ones) + ')' + random.choice('|&')
     
     return(sentence[:-1])
