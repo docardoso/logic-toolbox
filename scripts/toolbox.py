@@ -152,7 +152,112 @@ def generate(nvars):
     
     return(sentence[:-1])
         
+def karnaugh(sentence):
+    if type(sentence) == str:
+        table = truthtable(sentence).table()
+    else:
+        table = sentence.table()
 
 
+   
+    sols = []
+    nvars = len([i for i in table[0] if len(i) < 2])
 
 
+    for n, line in enumerate(table):
+        if line[-1] == 1:
+            tp = []
+
+            for i in range(nvars):
+                tp.append(line[i])
+
+            sols.append(tp)
+
+    print(sols)
+    if nvars == 2:
+        mapa = [[0,0],[0,0]]
+        for s in sols:
+            if s[0] == 1 and s[1] == 1:
+                mapa[0][0] = 1
+
+            elif s[0] == 0 and s[1] == 1:
+                mapa[0][1] = 1
+
+            elif s[0] == 1 and s[1] == 0:
+                mapa[1][0] = 1
+
+            else:
+                mapa[1][1] = 1
+        
+        print(mapa)
+
+    elif nvars == 3:
+        mapa = [[0,0,0,0], [0,0,0,0]]
+
+        for s in sols:
+            if s[2] == 0:
+                if(s[0] == 1 and s[1] == 1):
+                    mapa[1][0] = 1
+                elif(s[0] == 1 and s[1] == 0):
+                    mapa[1][1] = 1
+                elif(s[0] == 0 and s[1] == 1):
+                    # print("010 -- " + s[0] + s[1] + s[2])
+                    mapa[1][3] = 1
+                else:
+                    # print("000 -- " + s[0] + s[1] + s[2])
+                    mapa[1][2] = 1
+
+            else:
+                if(s[0] == 1 and s[1] == 1):
+                    mapa[0][0] = 1
+                elif(s[0] == 1 and s[1] == 0):
+                    mapa[0][1] = 1
+                elif(s[0] == 0 and s[1] == 1):
+                    mapa[0][3] = 1
+                else:
+                    mapa[0][2] = 1
+
+    elif nvars == 4:
+        mapa = [[0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0]]
+        for s in sols:
+            if s[2] == 1 and s[3] == 1:
+                if(s[0] == 1 and s[1] == 1):
+                    mapa[0][0] = 1
+                elif(s[0] == 1 and s[1] == 0):
+                    mapa[0][1] = 1
+                elif(s[0] == 0 and s[1] == 1):
+                    mapa[0][3] = 1
+                else:
+                    mapa[0][2] = 1
+            
+            elif s[2] == 1 and s[3] == 0:
+                if(s[0] == 1 and s[1] == 1):
+                    mapa[1][0] = 1
+                elif(s[0] == 1 and s[1] == 0):
+                    mapa[1][1] = 1
+                elif(s[0] == 0 and s[1] == 1):
+                    mapa[1][3] = 1
+                else:
+                    mapa[1][2] = 1
+            
+            elif s[2] == 0 and s[3] == 0:
+                if(s[0] == 1 and s[1] == 1):
+                    mapa[2][0] = 1
+                elif(s[0] == 1 and s[1] == 0):
+                    mapa[2][1] = 1
+                elif(s[0] == 0 and s[1] == 1):
+                    mapa[2][3] = 1
+                else:
+                    mapa[2][2] = 1
+
+            else:
+                if(s[0] == 1 and s[1] == 1):
+                    mapa[3][0] = 1
+                elif(s[0] == 1 and s[1] == 0):
+                    mapa[3][1] = 1
+                elif(s[0] == 0 and s[1] == 1):
+                    mapa[3][3] = 1
+                else:
+                    mapa[3][2] = 1
+        
+        return mapa
