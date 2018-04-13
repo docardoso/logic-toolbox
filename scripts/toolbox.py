@@ -157,12 +157,9 @@ def karnaugh(sentence):
         table = truthtable(sentence).table()
     else:
         table = sentence.table()
-
-
    
     sols = []
     nvars = len([i for i in table[0] if len(i) < 2])
-
 
     for n, line in enumerate(table):
         if line[-1] == 1:
@@ -173,7 +170,6 @@ def karnaugh(sentence):
 
             sols.append(tp)
 
-    print(sols)
     if nvars == 2:
         mapa = [[0,0],[0,0]]
         for s in sols:
@@ -189,8 +185,6 @@ def karnaugh(sentence):
             else:
                 mapa[1][1] = 1
         
-        print(mapa)
-
     elif nvars == 3:
         mapa = [[0,0,0,0], [0,0,0,0]]
 
@@ -201,10 +195,8 @@ def karnaugh(sentence):
                 elif(s[0] == 1 and s[1] == 0):
                     mapa[1][1] = 1
                 elif(s[0] == 0 and s[1] == 1):
-                    # print("010 -- " + s[0] + s[1] + s[2])
                     mapa[1][3] = 1
                 else:
-                    # print("000 -- " + s[0] + s[1] + s[2])
                     mapa[1][2] = 1
 
             else:
@@ -260,4 +252,44 @@ def karnaugh(sentence):
                 else:
                     mapa[3][2] = 1
         
-        return mapa
+    else:
+        return []
+
+    patterns = [[-1,0], [0,-1], [-1,-1], [0,3], [3,0], [1,3], [3,1]]
+    pairs = []
+
+    for p in patterns:
+        for n, x in enumerate(mapa):
+            if p[0] < 0:
+                xi = p[0]
+                xf = 0
+            else:
+                xi = 0
+                xf = p[0]
+
+            for m, y in enumerate(x):
+                f = 0
+                if p[1] < 0:
+                    yi = p[1]
+                    yf = 0
+                else:
+                    yi = 0
+                    yf = p[1]
+
+                for i in range(xi, xf+1):
+                    for j in range(yi, yf+1):
+                        if n+i < len(mapa) and m+j < len(x) and mapa[n+i][m+j] == 1:
+                            continue
+
+                        else:
+                            f = 1
+                            break
+
+                    if f == 1:
+                        break
+                if f == 1:              
+                    continue
+
+                pairs.append(((n,m),p))
+
+    return mapa, pairs
