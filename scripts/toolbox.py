@@ -151,156 +151,169 @@ def generate(nvars):
         sentence += '(' + random.choice(chosen_ones) + random.choice('|&') + random.choice(chosen_ones) + ')' + random.choice('|&')
     
     return(sentence[:-1])
-        
-def karnaugh(sentence):
-    if type(sentence) == str:
-        table = truthtable(sentence).table()
-    else:
-        table = sentence.table()
-   
-    sols = []
-    nvars = len([i for i in table[0] if len(i) < 2])
 
-    for n, line in enumerate(table):
-        if line[-1] == 1:
-            tp = []
+class kmap(object):
+    def __init__(self, sentence):
+        self.map = self.gen_map(sentence)
+        self.groups = self.gen_groups(self.map)
 
-            for i in range(nvars):
-                tp.append(line[i])
+    def gen_map(self, sentence):
+        if type(sentence) == str:
+            table = truthtable(sentence).table()
+        else:
+            table = sentence.table()
+    
+        sols = []
+        nvars = len([i for i in table[0] if len(i) < 2])
 
-            sols.append(tp)
+        for n, line in enumerate(table):
+            if line[-1] == 1:
+                tp = []
 
-    if nvars == 2:
-        mapa = [[0,0],[0,0]]
-        for s in sols:
-            if s[0] == 1 and s[1] == 1:
-                mapa[0][0] = 1
+                for i in range(nvars):
+                    tp.append(line[i])
 
-            elif s[0] == 0 and s[1] == 1:
-                mapa[0][1] = 1
+                sols.append(tp)
 
-            elif s[0] == 1 and s[1] == 0:
-                mapa[1][0] = 1
-
-            else:
-                mapa[1][1] = 1
-        
-    elif nvars == 3:
-        mapa = [[0,0,0,0], [0,0,0,0]]
-
-        for s in sols:
-            if s[2] == 0:
-                if(s[0] == 1 and s[1] == 1):
-                    mapa[1][0] = 1
-                elif(s[0] == 1 and s[1] == 0):
-                    mapa[1][1] = 1
-                elif(s[0] == 0 and s[1] == 1):
-                    mapa[1][3] = 1
-                else:
-                    mapa[1][2] = 1
-
-            else:
-                if(s[0] == 1 and s[1] == 1):
+        if nvars == 2:
+            mapa = [[0,0],[0,0]]
+            for s in sols:
+                if s[0] == 1 and s[1] == 1:
                     mapa[0][0] = 1
-                elif(s[0] == 1 and s[1] == 0):
-                    mapa[0][1] = 1
-                elif(s[0] == 0 and s[1] == 1):
-                    mapa[0][3] = 1
-                else:
-                    mapa[0][2] = 1
 
-    elif nvars == 4:
-        mapa = [[0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0]]
-        for s in sols:
-            if s[2] == 1 and s[3] == 1:
-                if(s[0] == 1 and s[1] == 1):
-                    mapa[0][0] = 1
-                elif(s[0] == 1 and s[1] == 0):
+                elif s[0] == 0 and s[1] == 1:
                     mapa[0][1] = 1
-                elif(s[0] == 0 and s[1] == 1):
-                    mapa[0][3] = 1
-                else:
-                    mapa[0][2] = 1
-            
-            elif s[2] == 1 and s[3] == 0:
-                if(s[0] == 1 and s[1] == 1):
+
+                elif s[0] == 1 and s[1] == 0:
                     mapa[1][0] = 1
-                elif(s[0] == 1 and s[1] == 0):
+
+                else:
                     mapa[1][1] = 1
-                elif(s[0] == 0 and s[1] == 1):
-                    mapa[1][3] = 1
-                else:
-                    mapa[1][2] = 1
             
-            elif s[2] == 0 and s[3] == 0:
-                if(s[0] == 1 and s[1] == 1):
-                    mapa[2][0] = 1
-                elif(s[0] == 1 and s[1] == 0):
-                    mapa[2][1] = 1
-                elif(s[0] == 0 and s[1] == 1):
-                    mapa[2][3] = 1
+            return mapa
+            
+        elif nvars == 3:
+            mapa = [[0,0,0,0], [0,0,0,0]]
+
+            for s in sols:
+                if s[2] == 0:
+                    if(s[0] == 1 and s[1] == 1):
+                        mapa[1][0] = 1
+                    elif(s[0] == 1 and s[1] == 0):
+                        mapa[1][1] = 1
+                    elif(s[0] == 0 and s[1] == 1):
+                        mapa[1][3] = 1
+                    else:
+                        mapa[1][2] = 1
+
                 else:
-                    mapa[2][2] = 1
+                    if(s[0] == 1 and s[1] == 1):
+                        mapa[0][0] = 1
+                    elif(s[0] == 1 and s[1] == 0):
+                        mapa[0][1] = 1
+                    elif(s[0] == 0 and s[1] == 1):
+                        mapa[0][3] = 1
+                    else:
+                        mapa[0][2] = 1
 
-            else:
-                if(s[0] == 1 and s[1] == 1):
-                    mapa[3][0] = 1
-                elif(s[0] == 1 and s[1] == 0):
-                    mapa[3][1] = 1
-                elif(s[0] == 0 and s[1] == 1):
-                    mapa[3][3] = 1
-                else:
-                    mapa[3][2] = 1
-        
-    else:
-        return []
+            return mapa
 
-    patterns = [[-1,0], [0,-1], [-1,-1], [0,3], [3,0], [1,3], [3,1], [3,3]]
-    pairs = set()
-
-    for p in patterns:
-        for n, x in enumerate(mapa):
-            if p[0] < 0:
-                xi = p[0]
-                xf = 0
-            else:
-                xi = 0
-                xf = p[0]
-
-            for m, y in enumerate(x):
-                f = 0
-                if p[1] < 0:
-                    yi = p[1]
-                    yf = 0
-                else:
-                    yi = 0
-                    yf = p[1]
-
-                tmp = []
-                for i in range(xi, xf+1):
-                    for j in range(yi, yf+1):
-                        if n+i < len(mapa) and m+j < len(x) and mapa[n+i][m+j] == 1:
-                            if n+i == -1:
-                                tmp.append((len(mapa)-1, m+j))
-                            elif m+j == -1:
-                                tmp.append((n+i, len(x)-1))
-                            elif n+i == -1 and m+j == -1:
-                                tmp.append((len(mapa)-1, len(y)-1))
-                            else:
-                                tmp.append((n+i, m+j))
-                            
-                            continue
-
-                        else:
-                            f = 1
-                            break
-
-                    if f == 1:
-                        break
-                if f == 1:              
-                    continue
+        elif nvars == 4:
+            mapa = [[0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0]]
+            for s in sols:
+                if s[2] == 1 and s[3] == 1:
+                    if(s[0] == 1 and s[1] == 1):
+                        mapa[0][0] = 1
+                    elif(s[0] == 1 and s[1] == 0):
+                        mapa[0][1] = 1
+                    elif(s[0] == 0 and s[1] == 1):
+                        mapa[0][3] = 1
+                    else:
+                        mapa[0][2] = 1
                 
-                tmp.sort()
-                pairs.add(tuple(tmp))
+                elif s[2] == 1 and s[3] == 0:
+                    if(s[0] == 1 and s[1] == 1):
+                        mapa[1][0] = 1
+                    elif(s[0] == 1 and s[1] == 0):
+                        mapa[1][1] = 1
+                    elif(s[0] == 0 and s[1] == 1):
+                        mapa[1][3] = 1
+                    else:
+                        mapa[1][2] = 1
+                
+                elif s[2] == 0 and s[3] == 0:
+                    if(s[0] == 1 and s[1] == 1):
+                        mapa[2][0] = 1
+                    elif(s[0] == 1 and s[1] == 0):
+                        mapa[2][1] = 1
+                    elif(s[0] == 0 and s[1] == 1):
+                        mapa[2][3] = 1
+                    else:
+                        mapa[2][2] = 1
 
-    return mapa, pairs
+                else:
+                    if(s[0] == 1 and s[1] == 1):
+                        mapa[3][0] = 1
+                    elif(s[0] == 1 and s[1] == 0):
+                        mapa[3][1] = 1
+                    elif(s[0] == 0 and s[1] == 1):
+                        mapa[3][3] = 1
+                    else:
+                        mapa[3][2] = 1
+
+            return mapa
+            
+        else:
+            return []
+
+    def gen_groups(self, mapa):
+        patterns = [[3, 3], [3, 1], [1, 3], [3, 0], [0, 3], [-1, -1], [0, -1], [-1, 0]]
+        pairs = set()
+
+        for p in patterns:
+            for n, x in enumerate(mapa):
+                if p[0] < 0:
+                    xi = p[0]
+                    xf = 0
+                else:
+                    xi = 0
+                    xf = p[0]
+
+                for m, y in enumerate(x):
+                    f = [[-1,0], [0,-1], [-1,-1], [0,3], [3,0], [1,3], [3,1], [3,3]]
+                    if p[1] < 0:
+                        yi = p[1]
+                        yf = 0
+                    else:
+                        yi = 0
+                        yf = p[1]
+
+                    tmp = []
+                    for i in range(xi, xf+1):
+                        for j in range(yi, yf+1):
+                            if n+i < len(mapa) and m+j < len(x) and mapa[n+i][m+j] == 1:
+                                if n+i == -1:
+                                    tmp.append((len(mapa)-1, m+j))
+                                elif m+j == -1:
+                                    tmp.append((n+i, len(x)-1))
+                                elif n+i == -1 and m+j == -1:
+                                    tmp.append((len(mapa)-1, len(y)-1))
+                                else:
+                                    tmp.append((n+i, m+j))
+                                
+                                continue
+
+                            else:
+                                f = 1
+                                break
+
+                        if f == 1:
+                            break
+                    if f == 1:              
+                        continue
+                    
+                    tmp.sort()
+                    pairs.add(tuple(tmp))
+
+        return pairs
+
