@@ -1,4 +1,5 @@
 from truths import Truths
+from copy import deepcopy
 import boolean
 import random
 
@@ -26,7 +27,6 @@ def shorten(sentence):
         else:    
             final.update(shorten(i))
     return sorted(final, key=lambda x: len(x.__str__()))
-
 
 def truthtable(sentence):
     """
@@ -155,7 +155,7 @@ def generate(nvars):
 class kmap(object):
     def __init__(self, sentence):
         self.map = self.gen_map(sentence)
-        self.groups = self.gen_groups(self.map)
+        self.groups = self.gen_groups(deepcopy(self.map))
 
     def gen_map(self, sentence):
         if type(sentence) == str:
@@ -280,7 +280,7 @@ class kmap(object):
                     xf = p[0]
 
                 for m, y in enumerate(x):
-                    f = [[-1,0], [0,-1], [-1,-1], [0,3], [3,0], [1,3], [3,1], [3,3]]
+                    f = 0
                     if p[1] < 0:
                         yi = p[1]
                         yf = 0
@@ -289,31 +289,41 @@ class kmap(object):
                         yf = p[1]
 
                     tmp = []
+                    anterior = deepcopy(mapa)
+                    
                     for i in range(xi, xf+1):
                         for j in range(yi, yf+1):
                             if n+i < len(mapa) and m+j < len(x) and mapa[n+i][m+j] == 1:
-                                if n+i == -1:
+                                mapa[n+i][m+j] = 2
+                                
+                                if n+i == -1 and m+j != -1:
                                     tmp.append((len(mapa)-1, m+j))
-                                elif m+j == -1:
+                                elif n+i != -1 and m+j == -1:
                                     tmp.append((n+i, len(x)-1))
                                 elif n+i == -1 and m+j == -1:
-                                    tmp.append((len(mapa)-1, len(y)-1))
+                                    tmp.append((len(mapa)-1, len(x)-1))
                                 else:
                                     tmp.append((n+i, m+j))
-                                
+
+                                continue
+                            
+                            elif n+i < len(mapa) and m+j < len(x) and mapa[n+i][m+j] == 2:
                                 continue
 
                             else:
+                                mapa = deepcopy(anterior)
                                 f = 1
                                 break
-
+                        
                         if f == 1:
                             break
-                    if f == 1:              
-                        continue
                     
+                    if f == 1:
+                        continue
+
+                    if len(tmp) == 0:
+                        continue
                     tmp.sort()
                     pairs.add(tuple(tmp))
 
         return pairs
-
