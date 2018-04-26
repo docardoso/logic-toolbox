@@ -267,63 +267,111 @@ class kmap(object):
             return []
 
     def gen_groups(self, mapa):
-        patterns = [[3, 3], [3, 1], [1, 3], [3, 0], [0, 3], [-1, -1], [0, -1], [-1, 0]]
+        patterns = [[3, 3], [3, 1], [1, 3], [3, 0], [0, 3], [-1, -1], [0, -1], [-1, 0], [0, 0]]
         pairs = set()
 
         for p in patterns:
-            for n, x in enumerate(mapa):
-                if p[0] < 0:
-                    xi = p[0]
-                    xf = 0
-                else:
-                    xi = 0
-                    xf = p[0]
+            
+            cells = set() # Stores the coordinates of each cell that can be grouped by this kind of pattern
+            while True:
+                pgroups = set() # Where every valid group of this pattern will be stored before being selected for the final set (pairs).
 
-                for m, y in enumerate(x):
-                    f = 0
-                    if p[1] < 0:
-                        yi = p[1]
-                        yf = 0
+                # Iterates over the X-axis of the map
+                for n, x in enumerate(mapa):
+                    if p[0] < 0:
+                        xi = p[0]
+                        xf = 0
                     else:
-                        yi = 0
-                        yf = p[1]
+                        xi = 0
+                        xf = p[0]
 
-                    tmp = []
-                    anterior = deepcopy(mapa)
-                    
-                    for i in range(xi, xf+1):
-                        for j in range(yi, yf+1):
-                            if n+i < len(mapa) and m+j < len(x) and mapa[n+i][m+j] == 1:
-                                mapa[n+i][m+j] = 2
+                    # Iterates over the Y-axis of the map
+                    for m, y in enumerate(x):
+                        f = 0
+                        if p[1] < 0:
+                            yi = p[1]
+                            yf = 0
+                        else:
+                            yi = 0
+                            yf = p[1]
+
+                        cells_tmp = set() # Temporarily stores coordinates of each cell that may be used in groups of this pattern
+                        group_tmp = [] # Temporarily stores coordinates of each cell that will be part of the final group
+                        weight = 0 # Weight that will be attributed to the current group
+                        anterior = deepcopy(mapa) # Safety measure in case this group isn't valid
+                        
+
+                        for i in range(xi, xf+1):
+                            for j in range(yi, yf+1):
+
+                                # Evaluates a cell and adds them to the temporary cells_tmp and group_tmp
+                                if n+i < len(mapa) and m+j < len(x) and (mapa[n+i][m+j] == 1 or mapa[n+i][m+j] == 2):
+                                    if mapa[n+i][m+j] == 1: # Only cells unique to a group are important to its evaluation
+                                        weight += 1
+                                    
+                                    if n+i == -1 and m+j != -1:
+                                        cells_tmp.add((len(mapa)-1, m+j))
+                                        group_tmp.append((len(mapa)-1, m+j))
+                                    elif n+i != -1 and m+j == -1:
+                                        cells_tmp.add((n+i, len(x)-1))
+                                        group_tmp.append((n+i, len(x)-1))
+                                    elif n+i == -1 and m+j == -1:
+                                        cells_tmp.add((len(mapa)-1, len(x)-1))
+                                        group_tmp.append((len(mapa)-1, len(x)-1))
+                                    else:
+                                        cells_tmp.add((n+i, m+j))
+                                        group_tmp.append((n+i, m+j))
+
+                                    continue
                                 
-                                if n+i == -1 and m+j != -1:
-                                    tmp.append((len(mapa)-1, m+j))
-                                elif n+i != -1 and m+j == -1:
-                                    tmp.append((n+i, len(x)-1))
-                                elif n+i == -1 and m+j == -1:
-                                    tmp.append((len(mapa)-1, len(x)-1))
+                                elif n+i < len(mapa) and m+j < len(x) and mapa[n+i][m+j] == 2:
+                                    continue
+
                                 else:
-                                    tmp.append((n+i, m+j))
-
-                                continue
+                                    mapa = deepcopy(anterior) # Activates the safety measure
+                                    f = 1
+                                    break
                             
-                            elif n+i < len(mapa) and m+j < len(x) and mapa[n+i][m+j] == 2:
-                                continue
-
-                            else:
-                                mapa = deepcopy(anterior)
-                                f = 1
+                            if f == 1:
                                 break
                         
                         if f == 1:
-                            break
-                    
-                    if f == 1:
-                        continue
+                            continue
 
-                    if len(tmp) == 0:
-                        continue
-                    tmp.sort()
-                    pairs.add(tuple(tmp))
+                        if len(group_tmp) == 0:
+                            continue
+
+                        group_tmp.sort()
+                        if group_tmp in list(pairs):
+                            continue
+
+                        if weight > 0: # Groups where there are no unique cells inside it are not useful.
+                            cells.update(cells_tmp) # If a group is valid, its cells are going to be added to the pool of cells that can be grouped with this pattern
+                            pgroups.add((tuple(group_tmp), weight)) # If the group is valid, then it's going to be added to the set of possible group choices
+                
+                
+
+                if len(pgroups) == 0:
+                    break
+
+                
+                pgroups = sorted(list(pgroups), key=lambda x: x[1], reverse=True)
+                best = set(pgroups[0][0]) # Best group defined by weight
+                pgroups.remove(pgroups[0])
+                cells = cells-best # Removing the cells already grouped by the best group
+
+                for tp in best:
+                    mapa[tp[0]][tp[1]] = 2
+
+                if len(cells) == 0:
+                    pairs.add(tuple(best))
+                    print(cells)
+                    break
+
+
+                
+                
+                pairs.add(tuple(best))
+                pgroups = set(pgroups)
 
         return pairs
