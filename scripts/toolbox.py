@@ -1,3 +1,9 @@
+'''
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+| One day this will be filled with relevant information, but that day isn't today|
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+'''
+
 from truths import Truths
 from copy import deepcopy
 import boolean
@@ -12,7 +18,7 @@ def sort_al(lista):
     
     Used only inside the shorten function and has no other use.
     '''
-    tamanhos = [[] for i in range(20)]
+    tamanhos = [[] for i in range(250)]
     final = list()
 
     for i in lista:
@@ -171,6 +177,10 @@ def CNF(sentence):
         return True
 
 def generate(nvars):
+    '''
+    Generates a logical sentence.
+    The 'nvars' argument limits the maximum number of variables that will be used.
+    '''
     alphabet = 'abcdefghijklmopqrstuvwxyz'
     chosen_ones = random.sample(alphabet, nvars)
     chosen_ones.extend(['~'+i for i in chosen_ones])
@@ -182,11 +192,27 @@ def generate(nvars):
     return(sentence[:-1])
 
 class kmap(object):
+    '''
+    Creates a Karnaugh Map's object using the provided sentence or truth table.
+    >>> kmp = kmap("(not c and not d) or (a and not b and not c) or (a and b and not d)")
+    
+    To get a list of lists representing the map, you can do
+    >>> kmp.map
+    [[0, 0, 0, 0], [1, 0, 0, 0], [1, 1, 1, 1], [0, 1, 0, 0]]
+
+    To get a set with tuples representing each grouping made, you can do
+    >>> kmp.groups
+    {((2, 0), (1, 0)), ((2, 0), (2, 3), (2, 1), (2, 2)), ((3, 1), (2, 1))}
+
+    '''
     def __init__(self, sentence):
         self.map = self.gen_map(sentence)
         self.groups = self.gen_groups(deepcopy(self.map))
 
     def gen_map(self, sentence):
+        '''
+        Returns a list of lists, where each position represents a position in a karnaugh map.
+        '''
         if type(sentence) == str:
             table = truthtable(sentence).table()
         else:
@@ -296,6 +322,9 @@ class kmap(object):
             return []
 
     def gen_groups(self, mapa):
+        '''
+        Returns a set of tuples, where each tuple represents a possible grouping in the map.
+        '''
         patterns = [[3, 3], [3, 1], [1, 3], [3, 0], [0, 3], [-1, -1], [0, -1], [-1, 0], [0, 0]]
         pairs = set()
 
@@ -394,7 +423,6 @@ class kmap(object):
 
                 if len(cells) == 0:
                     pairs.add(tuple(best))
-                    print(cells)
                     break
 
 
