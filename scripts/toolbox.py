@@ -5,6 +5,28 @@ import random
 
 bl = boolean.BooleanAlgebra()
 
+def sort_al(lista):
+    '''
+    Receives a list of Symbol objects.
+    Returns a list of strings of each symbol, sorted by lenght and alphabetical order.
+    
+    Used only inside the shorten function and has no other use.
+    '''
+    tamanhos = [[] for i in range(20)]
+    final = list()
+
+    for i in lista:
+        i = i.__str__()
+        tamanhos[len(i)].append(i)
+    
+    for sub in tamanhos:
+        sub.sort()
+        if sub not in final:
+            final.extend(sub)
+
+    return final
+    
+
 def shorten(sentence):
     """
     Receives a logical sentence.
@@ -12,21 +34,27 @@ def shorten(sentence):
     Those items types are found in the boolean.py library.
 
     Example:
-        >>> print(shorten((not a and b) or (a and b)))
-        [Symbol('b'), Symbol('a'), NOT(Symbol('a')), AND(Symbol('a'), Symbol('b')), AND(NOT(Symbol('a')), Symbol('b')), OR(AND(NOT(Symbol('a')), Symbol('b')), AND(Symbol('a'), Symbol('b')))]
+        >>> print(shorten("(not a and b) or (a and b)"))
+        ['a', 'b', '~a', 'a&b', '~a&b', '(~a&b)|(a&b)']
     """
     if type(sentence) == str:
         sentence = bl.parse(sentence)
 
-    final = set()
-    final.add(sentence)
+    values = set()
+    values.add(sentence)
     for i in sentence.args:
-        final.add(i)
+        values.add(i)
         if i.iscanonical:
             continue
         else:    
-            final.update(shorten(i))
-    return sorted(final, key=lambda x: len(x.__str__()))
+            values.update(shorten(i))
+
+    final = []
+    for i in sort_al(values):
+        if i not in final:
+            final.append(i)
+
+    return final
 
 def truthtable(sentence):
     """
@@ -46,16 +74,15 @@ def truthtable(sentence):
         | 1 | 0 | 0 |  0  |  0   |      0       |
         | 1 | 1 | 0 |  1  |  0   |      1       |
         +---+---+----+-----+------+--------------+
-        >>> print(x.table)
-        [['b', 'a', '~a', 'a&b', '~a&b', '(~a&b)|(a&b)'], [0, 0, 1, 0, 0, 0], 
-        [0, 1, 0, 0, 0, 0], [1, 0, 1, 0, 1, 1], [1, 1, 0, 1, 0, 1]]
+        >>> print(x.table())
+        [['a', 'b', '~a', 'a&b', '~a&b', '(~a&b)|(a&b)'], [0, 0, 1, 0, 0, 0], [0, 1, 1, 0, 1, 1], [1, 0, 0, 0, 0, 0], [1, 1, 0, 1, 0, 1]]
     """
     if type(sentence) == str:
         sentence = shorten(sentence)
 
     x, y = [], []
     for i in sentence:
-        if i.iscanonical:
+        if len(i) < 2:
             x.append(i.__str__())
         else:
             y.append(i.__str__())
@@ -375,3 +402,8 @@ class kmap(object):
                 pgroups = set(pgroups)
 
         return pairs
+
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
