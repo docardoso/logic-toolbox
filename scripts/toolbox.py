@@ -89,7 +89,6 @@ def truthtable(sentence):
     
     return Truths(x, y)
 
-# Erros quando a sentença nunca é verdadeira
 def DNF(sentence):
     """
     Receives either a sentence or the object returned by 'truthtable'.
@@ -97,9 +96,11 @@ def DNF(sentence):
 
     Example:
         >>> DNF('(p and not q) or r')
-        (~p&~q&r)|(~p&q&r)|(p&~q&~r)|(p&~q&r)|(p&q&r)
+        '(~p&~q&r)|(~p&q&r)|(p&~q&~r)|(p&~q&r)|(p&q&r)'
+        >>> DNF('a and not a')
+        False
 
-    -> If the sentence is always false the function will return False instead of another sentence
+    If the sentence is always false the function will return False instead of another sentence
     """
     if type(sentence) == str:
         table = truthtable(sentence)
@@ -123,12 +124,11 @@ def DNF(sentence):
             parts.append('(' + part + ')')
     try:
         dnf = bl.parse('|'.join(parts))
-        return dnf
+        return dnf.__str__()
 
     except boolean.boolean.ParseError:
         return False
 
-# Errors quando a sentença sempre é verdadeira
 def CNF(sentence):
     """
     Receives either a sentence or the object returned by 'truthtable'.
@@ -136,9 +136,11 @@ def CNF(sentence):
 
     Example:
         >>> CNF('(p and not q) or r')
-        (r|q|p)&(r|~q|p)&(r|~q|~p)
+        '(p|q|r)&(p|~q|r)&(~p|~q|r)'
+        >>> CNF('not a or a')
+        True
 
-    -> If the sentence is always true the function will return True instead of another sentence
+    If the sentence is always true the function will return True instead of another sentence
     """
     if type(sentence) == str:
         table = truthtable(sentence)
@@ -164,7 +166,7 @@ def CNF(sentence):
     
     try:
         cnf = bl.parse('&'.join(parts))
-        return cnf
+        return cnf.__str__()
     except boolean.boolean.ParseError:
         return True
 
