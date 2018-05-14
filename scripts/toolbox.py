@@ -11,27 +11,8 @@ import random
 
 bl = boolean.BooleanAlgebra()
 
-def sort_al(lista):
-    '''
-    Receives a list of Symbol objects.
-    Returns a list of strings of each symbol, sorted by lenght and alphabetical order.
-    
-    Used only inside the shorten function and has no other use.
-    '''
-    tamanhos = [[] for i in range(250)]
-    final = list()
-
-    for i in lista:
-        i = i.__str__()
-        tamanhos[len(i)].append(i)
-    
-    for sub in tamanhos:
-        sub.sort()
-        if sub not in final:
-            final.extend(sub)
-
-    return final
-    
+def sort_key_boolean_exp(boolean_exp):
+    return len(boolean_exp), boolean_exp
 
 def shorten(sentence):
     """
@@ -40,8 +21,8 @@ def shorten(sentence):
     Those items types are found in the boolean.py library.
 
     Example:
-        >>> print(shorten("(not a and b) or (a and b)"))
-        ['a', 'b', '~a', 'a&b', '~a&b', '(~a&b)|(a&b)']
+        >>> print(shorten("(not a and b) or (a and b) or (c and d) or (d and c)"))
+        ['a', 'b', 'c', 'd', '~a', 'a&b', 'c&d', 'd&c', '~a&b', '(~a&b)|(a&b)|(c&d)|(d&c)']
     """
     if type(sentence) == str:
         sentence = bl.parse(sentence)
@@ -56,7 +37,8 @@ def shorten(sentence):
             values.update(shorten(i))
 
     final = []
-    for i in sort_al(values):
+    values = map(str, values)
+    for i in sorted(values, key=sort_key_boolean_exp):  # sort_al(values):
         if i not in final:
             final.append(i)
 
