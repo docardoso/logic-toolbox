@@ -17,7 +17,7 @@ def sort_key_boolean_exp(boolean_exp):
 def shorten(sentence):
     """
     Receives a logical sentence.
-    Returns a list with each sub-item contained in a sentence. 
+    Returns a list with each sub-item contained in a sentence.
     Those items types are found in the boolean.py library.
 
     Example:
@@ -33,7 +33,7 @@ def shorten(sentence):
         values.add(i)
         if i.iscanonical:
             continue
-        else:    
+        else:
             values.update(shorten(i))
 
     final = []
@@ -74,7 +74,7 @@ def truthtable(sentence):
             x.append(i.__str__())
         else:
             y.append(i.__str__())
-    
+
     return Truths(x, y)
 
 def DNF(sentence):
@@ -84,9 +84,9 @@ def DNF(sentence):
 
     Example:
         >>> DNF('(p and not q) or r')
-        '(~p&~q&r)|(~p&q&r)|(p&~q&~r)|(p&~q&r)|(p&q&r)'
+        [(1, '(~p&~q&r)'), (3, '(~p&q&r)'), (4, '(p&~q&~r)'), (5, '(p&~q&r)'), (7, '(p&q&r)')]
         >>> DNF('a and not a')
-        False
+        []
 
     If the sentence is always false the function will return False instead of another sentence
     """
@@ -97,8 +97,8 @@ def DNF(sentence):
 
     tablelist = table.table()
     parts = []
-    
-    for row in tablelist[1:]:
+
+    for n, row in enumerate(tablelist[1:]):
         if row[-1] == 1:
             temp = []
 
@@ -107,12 +107,15 @@ def DNF(sentence):
                     temp.append('~'+tablelist[0][i])
                 else:
                     temp.append(tablelist[0][i])
-            
+
             part = '&'.join(temp)
-            parts.append('(' + part + ')')
+            parts.append((n,'(' + part + ')'))
+
+    # print("DParts:\n", parts)
     try:
-        dnf = bl.parse('|'.join(parts))
-        return dnf.__str__()
+        # dnf = bl.parse('|'.join(parts))
+        # return dnf.__str__()
+        return parts
 
     except boolean.boolean.ParseError:
         return False
@@ -124,9 +127,9 @@ def CNF(sentence):
 
     Example:
         >>> CNF('(p and not q) or r')
-        '(p|q|r)&(p|~q|r)&(~p|~q|r)'
+        [(0, '(p|q|r)'), (2, '(p|~q|r)'), (6, '(~p|~q|r)')]
         >>> CNF('not a or a')
-        True
+        []
 
     If the sentence is always true the function will return True instead of another sentence
     """
@@ -138,8 +141,8 @@ def CNF(sentence):
 
     tablelist = table.table()
     parts = []
-    
-    for row in tablelist[1:]:
+
+    for n, row in enumerate(tablelist[1:]):
         if row[-1] == 0:
             temp = []
 
@@ -148,13 +151,15 @@ def CNF(sentence):
                     temp.append('~'+tablelist[0][i])
                 else:
                     temp.append(tablelist[0][i])
-            
+
             part = '|'.join(temp)
-            parts.append('(' + part + ')')
-    
+            parts.append((n,'(' + part + ')'))
+
+    # print("CParts:\n", parts)
     try:
-        cnf = bl.parse('&'.join(parts))
-        return cnf.__str__()
+        # cnf = bl.parse('&'.join(parts))
+        # return cnf.__str__()
+        return parts
     except boolean.boolean.ParseError:
         return True
 
@@ -166,18 +171,18 @@ def generate(nvars):
     alphabet = 'abcdefghijklmopqrstuvwxyz'
     chosen_ones = random.sample(alphabet, nvars)
     chosen_ones.extend(['~'+i for i in chosen_ones])
-    
+
     sentence = ''
     for i in range(int((random.uniform(1, 5)))):
         sentence += '(' + random.choice(chosen_ones) + random.choice('|&') + random.choice(chosen_ones) + ')' + random.choice('|&')
-    
+
     return(sentence[:-1])
 
 class kmap(object):
     '''
     Creates a Karnaugh Map's object using the provided sentence or truth table.
     >>> kmp = kmap("(not c and not d) or (a and not b and not c) or (a and b and not d)")
-    
+
     To get a list of lists representing the map, you can do
     >>> kmp.map
     [[0, 0, 0, 0], [1, 0, 0, 0], [1, 1, 1, 1], [0, 1, 0, 0]]
@@ -199,7 +204,7 @@ class kmap(object):
             table = truthtable(sentence).table()
         else:
             table = sentence.table()
-    
+
         sols = []
         nvars = len([i for i in table[0] if len(i) < 2])
 
@@ -226,9 +231,9 @@ class kmap(object):
 
                 else:
                     mapa[1][1] = 1
-            
+
             return mapa
-            
+
         elif nvars == 3:
             mapa = [[0,0,0,0], [0,0,0,0]]
 
@@ -267,7 +272,7 @@ class kmap(object):
                         mapa[0][3] = 1
                     else:
                         mapa[0][2] = 1
-                
+
                 elif s[2] == 1 and s[3] == 0:
                     if(s[0] == 1 and s[1] == 1):
                         mapa[1][0] = 1
@@ -277,7 +282,7 @@ class kmap(object):
                         mapa[1][3] = 1
                     else:
                         mapa[1][2] = 1
-                
+
                 elif s[2] == 0 and s[3] == 0:
                     if(s[0] == 1 and s[1] == 1):
                         mapa[2][0] = 1
@@ -299,7 +304,7 @@ class kmap(object):
                         mapa[3][2] = 1
 
             return mapa
-            
+
         else:
             return []
 
@@ -311,7 +316,7 @@ class kmap(object):
         pairs = set()
 
         for p in patterns:
-            
+
             cells = set() # Stores the coordinates of each cell that can be grouped by this kind of pattern
             while True:
                 pgroups = set() # Where every valid group of this pattern will be stored before being selected for the final set (pairs).
@@ -339,7 +344,7 @@ class kmap(object):
                         group_tmp = [] # Temporarily stores coordinates of each cell that will be part of the final group
                         weight = 0 # Weight that will be attributed to the current group
                         anterior = deepcopy(mapa) # Safety measure in case this group isn't valid
-                        
+
 
                         for i in range(xi, xf+1):
                             for j in range(yi, yf+1):
@@ -348,7 +353,7 @@ class kmap(object):
                                 if n+i < len(mapa) and m+j < len(x) and (mapa[n+i][m+j] == 1 or mapa[n+i][m+j] == 2):
                                     if mapa[n+i][m+j] == 1: # Only cells unique to a group are important to its evaluation
                                         weight += 1
-                                    
+
                                     if n+i == -1 and m+j != -1:
                                         cells_tmp.add((len(mapa)-1, m+j))
                                         group_tmp.append((len(mapa)-1, m+j))
@@ -363,7 +368,7 @@ class kmap(object):
                                         group_tmp.append((n+i, m+j))
 
                                     continue
-                                
+
                                 elif n+i < len(mapa) and m+j < len(x) and mapa[n+i][m+j] == 2:
                                     continue
 
@@ -371,10 +376,10 @@ class kmap(object):
                                     mapa = deepcopy(anterior) # Activates the safety measure
                                     f = 1
                                     break
-                            
+
                             if f == 1:
                                 break
-                        
+
                         if f == 1:
                             continue
 
@@ -388,13 +393,13 @@ class kmap(object):
                         if weight > 0: # Groups where there are no unique cells inside it are not useful.
                             cells.update(cells_tmp) # If a group is valid, its cells are going to be added to the pool of cells that can be grouped with this pattern
                             pgroups.add((tuple(group_tmp), weight)) # If the group is valid, then it's going to be added to the set of possible group choices
-                
-                
+
+
 
                 if len(pgroups) == 0:
                     break
 
-                
+
                 pgroups = sorted(list(pgroups), key=lambda x: x[1], reverse=True)
                 best = set(pgroups[0][0]) # Best group defined by weight
                 pgroups.remove(pgroups[0])
@@ -408,8 +413,8 @@ class kmap(object):
                     break
 
 
-                
-                
+
+
                 pairs.add(tuple(best))
                 pgroups = set(pgroups)
 
