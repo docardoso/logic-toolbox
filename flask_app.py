@@ -45,7 +45,7 @@ def index():
 
             bd = table[1:]
             km = toolbox.kmap(stc)
-            kgrp = [[(j[0]+1, j[1]+1) for j in i] for i in km.groups]
+            kgrp = [sorted([(j[0]+1, j[1]+1) for j in i]) for i in km.groups]
             print(kgrp)
 
 
