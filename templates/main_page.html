@@ -19,77 +19,16 @@
 
 
         <div class="container" align="center">
-            {% if sentence %}
-                <h2><b>Sentença</b></h2>
-                <p>{{ sentence }}</p>
-                <h2><b>Tabela Verdade</b></h2>
-                <div>
-                    <table class="table table-hover table-bordered table-striped">
-                        <thead>
-                            {% for e in head %}
-                                <th class="text-center">{{ e }}</th>
-                            {% endfor %}
-                        </thead>
-                        <tbody>
-                            {% for row in body %}
-                                <tr>
-                                    {% for e in row %}
-                                        <td class="text-center">{{ e }}</td>
-                                    {% endfor %}
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-
-                <h2><b>Mapa de Karnaugh</b></h2>
-                <table class="table table-hover table-bordered table-striped">
-                    {% for row in km %}
-                        <tr>
-                            {% for e in row %}
-                                <td class="text-center">{{ e }}</td>
-                            {% endfor %}
-                        </tr>
-                    {% endfor %}
-                </table>
+            <form action="{{ url_for('resultado') }}" method="get">
+                <input type="text" name="entrada" value={{ holder }}>
                 <br>
                 <br>
-                <h4><b>Agrupamentos do Mapa</b></h4>
-                <p>
-                    Cada linha é um agrupamento diferente.
-                </p>
-                <table class="table table-hover table-bordered table-striped">
-                    {% for tuple in kg %}
-                        <tr>
-                            {% for list in tuple %}
-                                <td>
-                                    {{ list }}
-                                </td>
-                            {% endfor %}
-                        </tr>
-                    {% endfor %}
-                </table>
-                <form action="." method="get">
-                        <input type="submit" class="btn btn-dark" value="Return">
-                </form>
+                <input id="button-go" type="submit" class="btn  btn-dark btn-block" value="Resolver">
+            </form>
 
-            {% else %}
-
-                <form action="." method="get">
-                    <input type="text" name="entrada" value={{ holder }}>
-                    <br>
-                    <br>
-                    <div class="buttons">
-                        <input id="button-go" name="button" type="submit" class="btn  btn-dark btn-block" value="Resolver">
-                        <input id="button-go random" name="button" type="submit" class="btn  btn-dark btn-block" value="Aleatorio">
-                    </div>
-
-                </form>
-
-             {% endif %}
-
-
-
+            <form action="{{ url_for('aleatorio') }}" method="get">
+                <input id="button-go random" type="submit" class="btn  btn-dark btn-block" value="Aleatorio">                   
+            </form>
         </div>
-
     </body>
 </html>
