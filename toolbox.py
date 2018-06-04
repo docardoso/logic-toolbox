@@ -84,7 +84,7 @@ def DNF(sentence):
 
     Example:
         >>> DNF('(p and not q) or r')
-        [(1, '(~p&~q&r)'), (3, '(~p&q&r)'), (4, '(p&~q&~r)'), (5, '(p&~q&r)'), (7, '(p&q&r)')]
+        [(1, '~p&~q&r'), (3, '~p&q&r'), (4, 'p&~q&~r'), (5, 'p&~q&r'), (7, 'p&q&r')]
         >>> DNF('a and not a')
         []
 
@@ -109,12 +109,9 @@ def DNF(sentence):
                     temp.append(tablelist[0][i])
 
             part = '&'.join(temp)
-            parts.append((n,'(' + part + ')'))
+            parts.append((n, part))
 
-    # print("DParts:\n", parts)
     try:
-        # dnf = bl.parse('|'.join(parts))
-        # return dnf.__str__()
         return parts
 
     except boolean.boolean.ParseError:
@@ -127,7 +124,7 @@ def CNF(sentence):
 
     Example:
         >>> CNF('(p and not q) or r')
-        [(0, '(p|q|r)'), (2, '(p|~q|r)'), (6, '(~p|~q|r)')]
+        [(0, 'p|q|r'), (2, 'p|~q|r'), (6, '~p|~q|r')]
         >>> CNF('not a or a')
         []
 
@@ -153,12 +150,9 @@ def CNF(sentence):
                     temp.append(tablelist[0][i])
 
             part = '|'.join(temp)
-            parts.append((n,'(' + part + ')'))
+            parts.append((n, part))
 
-    # print("CParts:\n", parts)
     try:
-        # cnf = bl.parse('&'.join(parts))
-        # return cnf.__str__()
         return parts
     except boolean.boolean.ParseError:
         return True
