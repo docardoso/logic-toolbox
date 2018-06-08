@@ -154,20 +154,32 @@ def CNF(sentence):
 
     try:
         return parts
+
     except boolean.boolean.ParseError:
         return True
 
-def generate(nvars):
+def generate(nvars, chosen_ones='', size=4, deeper=True):
     '''
     Generates a logical sentence.
     The 'nvars' argument limits the maximum number of variables that will be used.
     '''
     alphabet = 'abcdefghijklmopqrstuvwxyz'
-    chosen_ones = random.sample(alphabet, nvars)
-    chosen_ones.extend(['~'+i for i in chosen_ones])
+    if chosen_ones == '':
+        chosen_ones = random.sample(alphabet, nvars)
+    
+    if deeper:
+        chosen_ones.extend(['~'+i for i in chosen_ones])
+    paretheses = 0;
 
+    print(chosen_ones)
     sentence = ''
-    for i in range(int((random.uniform(1, 5)))):
+    for i in range(int((random.uniform(1, size)))):
+        if random.choice([True, False]) and deeper:
+            chosen_ones.append(generate(nvars, chosen_ones, 3, False))           
+
+        if random.choice([True, False]):
+            sentence += '~'
+
         sentence += '(' + random.choice(chosen_ones) + random.choice('|&') + random.choice(chosen_ones) + ')' + random.choice('|&')
 
     return(sentence[:-1])
