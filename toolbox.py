@@ -173,14 +173,22 @@ def generate(nvars, chosen_ones='', size=4, deeper=True):
 
     print(chosen_ones)
     sentence = ''
-    for i in range(int((random.uniform(1, size)))):
+    for i in range(random.randint(1, size)):
         if random.choice([True, False]) and deeper:
             chosen_ones.append(generate(nvars, chosen_ones, 3, False))           
 
         if random.choice([True, False]):
             sentence += '~'
 
-        sentence += '(' + random.choice(chosen_ones) + random.choice('|&') + random.choice(chosen_ones) + ')' + random.choice('|&')
+        tmp = ''
+        for j in range(random.randint(1, size)):
+            tmp += random.choice(chosen_ones) + random.choice('|&')
+                
+
+        if tmp[-1] in '|&':
+            sentence += '(' + tmp[:-1] + ')' + random.choice('|&')
+        else:
+            sentence += '(' + tmp + ')' + random.choice('|&')
 
     return(sentence[:-1])
 
