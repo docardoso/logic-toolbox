@@ -3,13 +3,13 @@
 | One day this will be filled with relevant information, but that day isn't today|
  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
-
-from truths import Truths
 from copy import deepcopy
-import boolean
+from myalgebra import *
+
+import itertools as it
 import random
 
-bl = boolean.BooleanAlgebra()
+bl = MyAlgebra()
 
 def sort_key_boolean_exp(boolean_exp):
     return len(boolean_exp), boolean_exp
@@ -44,38 +44,100 @@ def shorten(sentence):
 
     return final
 
-def truthtable(sentence):
-    """
-    Receives either a setence or an list returned by 'shorten'.
+def make_table(expression):
+    evaluations = [] # Where the final results are stored
+    header = [bl.parse(i) for i in shorten(expression)] # Gets table headers
+    exp_literals = sorted([i.__str__() for i in header if len(i.__str__()) <= 2 and type(i) != boolean.NOT]) # Gets expression literals
 
-    Returns a Truth object which can be used to either get a list representation of truth table
-    or a string representation.
+    n = len(exp_literals) # Number of literals in expression
 
-    Example:
-        >>> x = truthtable('(not a and b) or (a and b)')
-        >>> print(x)
-        +---+---+----+-----+------+--------------+
-        | a | b | ~a | a&b | ~a&b | (~a&b)|(a&b) |
-        +---+---+----+-----+------+--------------+
-        | 0 | 0 | 1 |  0  |  0   |      0       |
-        | 0 | 1 | 1 |  0  |  1   |      1       |
-        | 1 | 0 | 0 |  0  |  0   |      0       |
-        | 1 | 1 | 0 |  1  |  0   |      1       |
-        +---+---+----+-----+------+--------------+
-        >>> print(x.table())
-        [['a', 'b', '~a', 'a&b', '~a&b', '(~a&b)|(a&b)'], [0, 0, 1, 0, 0, 0], [0, 1, 1, 0, 1, 1], [1, 0, 0, 0, 0, 0], [1, 1, 0, 1, 0, 1]]
-    """
-    if type(sentence) == str:
-        sentence = shorten(sentence)
+    for value in it.product([1,0], repeat=n):
+        tmp = [] # Temporary variable that store the evaluations
+        subs_dict = {} # Stores the value a subexpression will assume in this case
+        subs_dict_alt = {} # Same as the first one, but literals have already been replaced
 
-    x, y = [], []
-    for i in sentence:
-        if len(i) < 2:
-            x.append(i.__str__())
-        else:
-            y.append(i.__str__())
+        # Inserts the columns for each literal with the right values
+        for i, v in zip(header[:n], value):
+            literals = [j for j in i.literals if type(j) != boolean.NOT]
+            a = i.subs({i:bl.parse(str(v)) for new, old in zip(value, sorted(i.literals))}) # Magic-Vodoo
+            tmp.append(int(a.simplify().__str__()))
 
-    return Truths(x, y)
+        # Evaluates the expression according to each literal value and inserts it in the correct place
+        for i in header[n:]:
+            original = i # Stores the original unmodified sub-expression
+
+            # My own kind of boolean.Expression.subs
+            ordered_subs_dict = sorted([(x.__str__(), str(y)) for x, y in subs_dict.items()], key=lambda v: len(v[0]), reverse=True)
+            for item in ordered_subs_dict:
+                if item[0] in i.__str__():
+                    i = bl.parse(i.__str__().replace(item[0], item[1]))
+
+            # Find the literals in the current sub-expression and stores them
+            sub_literals = []
+            sub_literals_str = []
+            for ind, lit in enumerate(sorted([i.__str__() for i in header if len(i.__str__()) < 2])):
+                for j, k in enumerate(str(i)):
+                    if k == lit:
+                        sub_literals.append(ind)
+                        sub_literals_str.append(lit)
+
+            
+            special_values = list(value) # Stores the correct value for each literal
+            special_values += [0 if i == 1 else 1 for i in special_values] # Creates the equivalent values for the NOT literals
+            special_values = [special_values[i] for i in sub_literals] # Filters the values to only store what is needed
+
+            sbs = {}
+            for new, old in zip(special_values, sorted(sub_literals_str)):
+                sbs[bl.parse(old)] = bl.parse(str(new))
+
+            a = i.subs(sbs) # Substitutes literals with 0's and 1's
+            substituted_a = a
+            
+            # REMOVING ~(1) and ~(0) FROM SENTENCE
+            subexp_str = a.__str__()
+            newexp = ""
+            iterator = iter(range(len(subexp_str)))
+            for index in iterator:
+                if subexp_str[index] == '~' and (subexp_str[index+2] == '1' or subexp_str[index+2] == '0'):
+                    if subexp_str[index+1:index+4] == '(1)':
+                        newexp += '0'
+                    else:
+                        newexp += '1'
+                    next(iterator)
+                    next(iterator)
+                    next(iterator)
+                    
+                else:
+                    newexp += subexp_str[index]
+            
+            # END OF 'REMOVING ~(1) and ~(0)'
+
+            # SIMPLIFYING BY PARTS (Another kind of boolean.Boolean.subs)
+            ordered_subs_dict_alt = sorted([(x.__str__(), str(y)) for x, y in subs_dict_alt.items()], key=lambda v: len(v[0]), reverse=True)
+            for k, v in ordered_subs_dict_alt:
+                if k in newexp:
+                    newexp = newexp.replace(k, v)
+            # END OF 'SIMPLIFYING BY PARTS'
+
+            a = bl.parse(newexp).simplify()
+                              
+            if "~" in str(a) and len(str(a)) == 4:
+                if str(a)[2] == '1':
+                    a = bl.parse('0')
+                else:
+                    a = bl.parse('1')
+            
+            subs_dict_alt[substituted_a.__str__()] = a
+            
+            subs_dict[original] = a.simplify()
+            tmp.append(int(a.simplify().__str__()))
+            
+        evaluations.append(tmp)
+
+    table = [[i.__str__() for i in header]] # Adds headers
+    table.extend(reversed(evaluations)) # Adds the rest of the table
+
+    return table
 
 def DNF(sentence):
     """
@@ -90,19 +152,19 @@ def DNF(sentence):
 
     If the sentence is always false the function will return False instead of another sentence
     """
-    if type(sentence) == str:
-        table = truthtable(sentence)
-    else:
-        table = sentence
 
-    tablelist = table.table()
+    if type(sentence) == str:
+        tablelist = make_table(sentence)
+    else:
+        tablelist = sentence
+
     parts = []
 
     for n, row in enumerate(tablelist[1:]):
         if row[-1] == 1:
             temp = []
 
-            for i in range(len(table.base)):
+            for i in range(len([i for i in tablelist[0] if len(i) < 2])):
                 if row[i] == 0:
                     temp.append('~'+tablelist[0][i])
                 else:
@@ -131,19 +193,17 @@ def CNF(sentence):
     If the sentence is always true the function will return True instead of another sentence
     """
     if type(sentence) == str:
-        table = truthtable(sentence)
+        tablelist = make_table(sentence)
     else:
-        table = sentence
+        tablelist = sentence
 
-
-    tablelist = table.table()
     parts = []
 
     for n, row in enumerate(tablelist[1:]):
         if row[-1] == 0:
             temp = []
 
-            for i in range(len(table.base)):
+            for i in range(len([i for i in tablelist[0] if len(i) < 2])):
                 if row[i] == 1:
                     temp.append('~'+tablelist[0][i])
                 else:
@@ -171,7 +231,6 @@ def generate(nvars, chosen_ones='', size=4, deeper=True):
         chosen_ones.extend(['~'+i for i in chosen_ones])
     paretheses = 0;
 
-    print(chosen_ones)
     sentence = ''
     for i in range(random.randint(1, size)):
         if random.choice([True, False]) and deeper:
@@ -204,8 +263,8 @@ class kmap(object):
     To get a set with tuples representing each grouping made, you can do
     >>> kmp.groups
     {((2, 0), (1, 0)), ((2, 0), (2, 3), (2, 1), (2, 2)), ((3, 1), (2, 1))}
-
     '''
+
     def __init__(self, sentence):
         self.map = self.gen_map(sentence)
         self.groups = self.gen_groups(deepcopy(self.map))
@@ -215,9 +274,9 @@ class kmap(object):
         Returns a list of lists, where each position represents a position in a karnaugh map.
         '''
         if type(sentence) == str:
-            table = truthtable(sentence).table()
+            table = make_table(sentence)
         else:
-            table = sentence.table()
+            table = sentence
 
         sols = []
         nvars = len([i for i in table[0] if len(i) < 2])
