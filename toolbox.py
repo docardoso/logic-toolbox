@@ -3,6 +3,7 @@
 | One day this will be filled with relevant information, but that day isn't today|
  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
+
 from copy import deepcopy
 from myalgebra import *
 
@@ -59,8 +60,8 @@ def make_table(expression):
         # Inserts the columns for each literal with the right values
         for i, v in zip(header[:n], value):
             literals = [j for j in i.literals if type(j) != boolean.NOT]
-            a = i.subs({i:bl.parse(str(v)) for new, old in zip(value, sorted(i.literals))}) # Magic-Vodoo
-            tmp.append(int(a.simplify().__str__()))
+            exp_object = i.subs({i:bl.parse(str(v)) for new, old in zip(value, sorted(i.literals))}) # Magic-Vodoo
+            tmp.append(int(exp_object.simplify().__str__()))
 
         # Evaluates the expression according to each literal value and inserts it in the correct place
         for i in header[n:]:
@@ -90,11 +91,11 @@ def make_table(expression):
             for new, old in zip(special_values, sorted(sub_literals_str)):
                 sbs[bl.parse(old)] = bl.parse(str(new))
 
-            a = i.subs(sbs) # Substitutes literals with 0's and 1's
-            substituted_a = a
+            exp_object = i.subs(sbs) # Substitutes literals with 0's and 1's
+            substituted_exp_object = exp_object
             
             # REMOVING ~(1) and ~(0) FROM SENTENCE
-            subexp_str = a.__str__()
+            subexp_str = exp_object.__str__()
             newexp = ""
             iterator = iter(range(len(subexp_str)))
             for index in iterator:
@@ -119,18 +120,18 @@ def make_table(expression):
                     newexp = newexp.replace(k, v)
             # END OF 'SIMPLIFYING BY PARTS'
 
-            a = bl.parse(newexp).simplify()
+            exp_object = bl.parse(newexp).simplify()
                               
-            if "~" in str(a) and len(str(a)) == 4:
-                if str(a)[2] == '1':
-                    a = bl.parse('0')
+            if "~" in str(exp_object) and len(str(exp_object)) == 4:
+                if str(exp_object)[2] == '1':
+                    exp_object = bl.parse('0')
                 else:
-                    a = bl.parse('1')
+                    exp_object = bl.parse('1')
             
-            subs_dict_alt[substituted_a.__str__()] = a
+            subs_dict_alt[substituted_exp_object.__str__()] = exp_object
             
-            subs_dict[original] = a.simplify()
-            tmp.append(int(a.simplify().__str__()))
+            subs_dict[original] = exp_object.simplify()
+            tmp.append(int(exp_object.simplify().__str__()))
             
         evaluations.append(tmp)
 
