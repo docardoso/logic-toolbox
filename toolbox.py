@@ -3,7 +3,7 @@
 | One day this will be filled with relevant information, but that day isn't today|
  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 '''
-
+from boolean import NOT, OR, Symbol
 from copy import deepcopy
 from myalgebra import *
 
@@ -494,6 +494,180 @@ class kmap(object):
 
         return pairs
 
+
+def indc(expression):
+    ans = remove_conjunctions(bl.cnf(convert_implication(bl.parse(expression))))
+    return ans
+
+def convert_implication(expression, new_args={}):
+    if type(expression) == boolean.Symbol:
+        return expression
+
+    elif type(expression) == IMP:
+        expression = OR(NOT(expression.args[0]), expression.args[1])
+
+    
+    # new_args = {}
+    for arg in expression.args:
+        if arg in new_args.keys():
+            continue
+        # print(arg, convert_implication(arg))
+        new_args[arg] = convert_implication(arg, new_args)
+    
+    expression = expression.subs(new_args)
+
+    return expression
+
+def remove_conjunctions(expression):
+    return str(expression).split('&')
+
+def solve(clause, clause2):
+    if type(clause) == str:
+        bl.parse(clause)
+    
+    if type(clause2) == str:
+        bl.parse(clause2)
+
+    # E.g: a and b
+    if (type(clause) == boolean.Symbol and type(clause2) == boolean.Symbol) or (type(clause) == NOT and type(clause2) == NOT):
+        return None
+    
+    # E.g: a or b and a or b
+    elif clause == clause2:
+        return None
+
+    # E.g: not a and a
+    elif type(clause) == NOT and type(clause2) == boolean.Symbol:
+        if clause.args[0] == clause2:
+            return True
+
+    # E.g: a and not a
+    elif type(clause) == boolean.Symbol and type(clause2) == NOT:
+        if clause2.args[0] == clause:
+            return True
+    
+    # E.g: a and (not a or b)
+    elif type(clause) == boolean.Symbol and type(clause2) == OR:
+        tmp = [arg for arg in clause2.args if not (type(arg) == NOT and arg.args[0] == clause)]
+        try:
+            return OR(*tmp)    
+        except TypeError:
+            return tmp[0]
+
+    # Eg: not a and (a or b)    
+    elif type(clause) == NOT and type(clause2) == OR:
+        tmp = [arg for arg in clause2.args if arg != clause.args[0]]
+        try:
+            return OR(*tmp)
+        except TypeError:
+            return tmp[0]
+
+    # E.g: (not a or b) and a 
+    elif type(clause) == OR and type(clause2) == boolean.Symbol:
+        tmp = [arg for arg in clause.args if not (type(arg) == NOT and arg.args[0] == clause2)]
+        try:
+            return OR(*tmp)    
+        except TypeError:
+            return tmp[0]
+
+    # Eg: (a or b) and not a
+    elif type(clause) == OR and type(clause2) == NOT:
+        tmp = [arg for arg in clause.args if arg != clause2.args[0]]
+        try:
+            return OR(*tmp)
+        except TypeError:
+            return tmp[0]
+    
+    else:
+        vetted = set()
+        excluded = set()
+        for arg in clause.args:
+            # tmp = False
+            for arg2 in clause2.args:
+                
+                # E.g: not a and a
+                if type(arg) == NOT and type(arg2) == boolean.Symbol:
+                    if arg.args[0] == arg2:
+                        excluded.add(arg)
+                        excluded.add(arg2)
+                        vetted.discard(arg)
+                        vetted.discard(arg2)
+
+                # E.g: a and not a
+                elif type(arg) == boolean.Symbol and type(arg2) == NOT:
+                    if arg == arg2.args[0]:
+                        excluded.add(arg)
+                        excluded.add(arg2)
+                        vetted.discard(arg)
+                        vetted.discard(arg2)
+
+                if arg2 not in excluded:
+                    vetted.add(arg2)
+            
+            if arg not in excluded:
+                    vetted.add(arg)
+        
+        if len(vetted) == 1:
+            try:
+                return Symbol(*vetted)
+            except TypeError:
+                quit()
+        elif len(vetted) == 0:
+            return None
+        else:
+            return OR(*vetted)
+
+def prove(expressions, answer):
+    tree = dict()
+    clauses = []
+    for i in expressions + ["not({})".format(answer)]:
+        for j in indc(i):
+            if bl.parse(j) not in clauses:
+                tree[str(bl.parse(j))] = (None, None)
+                clauses.append(bl.parse(j))
+    
+    absurd = False
+    l = 0
+    history = set()    
+    while not absurd:
+        l += 1
+        if l == 6:
+            break
+
+        for index, n in enumerate(clauses):
+            for m in clauses:
+                if ((n, m) not in history): #and ((m, n) not in history):
+                    result = solve(n, m)
+
+                history.add((n, m))        
+                history.add((m, n))
+                if result == None:
+                    continue
+
+                if str(result) not in tree:
+                    tree[str(result)] = (str(n), str(m))
+                
+                if result == True:
+                    queue = ['True']
+                    tmp = set()
+                    final = []
+                    while queue:
+                        current = queue.pop(0)
+                        if (current, tree[current]) not in final:
+                            final.append((current, tree[current]))
+
+                        if current in tree:
+                            for i in tree[str(current)]:
+                                if i != None and i not in tmp:
+                                    queue.append(i)
+                                    tmp.add(i)
+                    
+                    return final
+
+                else:
+                    if result not in clauses:
+                        clauses.append(result)
+    
 
 if __name__ == "__main__":
     import doctest

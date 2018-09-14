@@ -2,10 +2,6 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 from __future__ import print_function
 
-# from toolbox import *
-# from boolean import *
-# from boolean import PARSE_UNKNOWN_TOKEN
-
 try:
     basestring  # Python 2
 except NameError:
@@ -13,11 +9,8 @@ except NameError:
 
 import inspect
 
-# from boolean import Expression
-# from boolean import Function
-#from boolean import DualBase
+
 from boolean import BooleanAlgebra
-# from boolean import Function
 from boolean import ParseError
 from boolean import Symbol
 from boolean import TOKEN_NOT
@@ -34,21 +27,10 @@ from boolean import boolean
 TOKEN_IMP = 9
 TRACE_PARSE = False
 
-# from boolean import PARSE_INVALID_SYMBOL_SEQUENCE
-# from boolean() import PARSE_INVALID_EXPRESSION
-# from boolean import PARSE_INVALID_NESTING
-
 class MyAlgebra(BooleanAlgebra):
     def __init__(self, IMP_class=None):
         super().__init__()
-        self.IMP = IMP_class or IMP
-
-        # for a in super().definition():
-        #     print(a)
-        # [getattr(bl, a) for a in dir(bl) if isinstance(getattr(bl, a), boolean.boolean.BaseElement) or inspect.isclass(getattr(bl, a)) and issubclass(getattr(bl, a), boolean.boolean.Expression)]
-        # tf_nao['IMP'] = self.IMP
-
-        
+        self.IMP = IMP_class or IMP      
 
     def tokenize(self, expr):
         if not isinstance(expr, basestring):
@@ -271,6 +253,18 @@ class IMP(boolean.DualBase):
         self.annihilator = self.TRUE
         self.dual = self.AND
         self.operator = '>'
+
+    def __eq__(self, other):
+        try:
+            if self.args == other.args:
+                return True
+            else:
+                return False
+        except AttributeError:
+            return False
+    
+    def __hash__(self):
+        return hash(self.args)
 
 if __name__ == '__main__':
     bl = MyAlgebra()
