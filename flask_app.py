@@ -21,13 +21,37 @@ def aleatorio():
     print("-- Aleatorio --\n{}".format(hdr))
     return render_template("main_page.html", holder=hdr)
 
+@app.route('/about', methods=["GET"])
+def about():
+    print("-- About --")    
+    return render_template("about.html")
+
+@app.route('/resolution', methods=["GET"])
+def resolution():
+    print("-- Resolution --")
+    args = request.args["entrada"].split(',')
+    proof = toolbox.prove(args[:-1], args[-1])
+    proof = [[part[0], part[1][0], part[1][1]] for part in proof]
+    new_proof  = []
+    
+    for element in reversed(proof):
+        if element[1] == None:
+            new_proof.insert(0, element)
+        else:
+            new_proof.append(element)
+    
+   
+    print(proof)
+    print(new_proof)
+            
+
+    return render_template("resolution.html", prem=args[:-1], final=args[-1], proof=new_proof)
 
 @app.route('/results', methods=["GET"])
 def resultado():
     print("-- Resultado --\n")
-    # stc = request.form.get("entrada")
     stc = request.args["entrada"]
-    table = toolbox.truthtable(stc).table()
+    table = toolbox.make_table(stc)
 
     d = toolbox.DNF(stc)
     c = toolbox.CNF(stc)
