@@ -11,6 +11,10 @@
     function change_to_eval(){
         document.getElementById("input-box-form").action = '{{ url_for('resultado') }}';
     }
+
+    function change_to_random(){
+        document.getElementById("input-box-form").action = '{{ url_for('resultado') }}';
+    }
 </script>
 
 
@@ -28,7 +32,7 @@
         <input id="button-go-random" type="submit" class="btn  btn-dark btn-block" value="Aleatorio">                   
     </form>
 
-    <form>
+    <form class="form-check">
         <input type="radio" name="problem-type" id="resolution" value="resolution" onclick="change_to_resolution();">
         <label for="resolution">Resolução</label>
         <input type="radio" name="problem-type" id="evaluation" value="evaluation" checked="checked" onclick="change_to_eval();" >                

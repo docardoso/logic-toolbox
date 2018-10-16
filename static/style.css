@@ -1,22 +1,28 @@
-form {
+/* #main-form {
     width: 20%
+} */
+.content {
+    display: inline-block;
 }
+
+.container {
+    text-align: center;
+}
+
+/* #correction-form {
+    width: 50%
+} */
 
 
 #about-title {
     margin: 5%
 }
-/* 
-#problem {
-    border-style: solid;
-    border-width: 5px;
-    border-color: black;
-} */
 
 #random-form, #input-box-form{
     display: inline-block;
     position: relative;
     align-self: center;
+    width: 20%;
 }
 
 #main-container {
@@ -24,9 +30,6 @@ form {
 }
 
 #input-box {
-    /* display: block; */
     align-self: center;
     position: absolute;
-
-    /* margin-left: 60%; */
 }

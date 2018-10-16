@@ -4,7 +4,7 @@ import toolbox
 app = Flask(__name__)
 app.config["DEBUG"] = True
 
-stc = []
+stc = "a or b"
 table = []
 hd = []
 bd = []
@@ -38,12 +38,7 @@ def resolution():
         if element[1] == None:
             new_proof.insert(0, element)
         else:
-            new_proof.append(element)
-    
-   
-    print(proof)
-    print(new_proof)
-            
+            new_proof.append(element)         
 
     return render_template("resolution.html", prem=args[:-1], final=args[-1], proof=new_proof)
 
@@ -67,7 +62,7 @@ def resultado():
 
         if empty:
             table[i+1].append("")
-        
+
         empty = 1
         for j in d:
             if j[0] == i:
