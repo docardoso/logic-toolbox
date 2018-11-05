@@ -11,6 +11,7 @@ import itertools as it
 import random
 
 bl = MyAlgebra()
+stash = {}
 
 def sort_key_boolean_exp(boolean_exp):
     return len(boolean_exp), boolean_exp
@@ -494,7 +495,6 @@ class kmap(object):
 
         return pairs
 
-
 def indc(expression):
     ans = remove_conjunctions(bl.cnf(convert_implication(bl.parse(expression))))
     return ans
@@ -667,7 +667,106 @@ def prove(expressions, answer):
                 else:
                     if result not in clauses:
                         clauses.append(result)
+
+def dual_to_nand(exp):
+    global stash
     
+    if type(exp) == NOT:
+        if type(exp.args[0]) == Symbol:
+            return NOT(AND(exp.args[0], exp.args[0]))
+
+        elif type(exp.args[0]) == AND:
+            args = []
+            for tmp in list(exp.args[0].args):
+                if type(tmp) != Symbol:
+                    if len(tmp.args) > 2:
+                        args.append(sop_to_nand(tmp))
+                    
+                    else:
+                        args.append(dual_to_nand(tmp))
+                else:
+                    args.append(tmp)
+           
+            return NOT(AND(*args))
+
+        else:
+            exp = exp.literalize()
+            return pos_to_nand(exp)
+            
+    
+    if type(exp) == Symbol:
+        return exp
+
+    if exp in stash:
+        return stash[exp]
+
+    a = exp.args[0]
+    b = exp.args[1]
+    if type(a) != Symbol:
+        if a in stash:
+            a = stash[a]
+        else:
+            a = dual_to_nand(a)
+    
+    if type(b) != Symbol:
+        if b in stash:
+            b = stash[b]
+        else:
+            b = dual_to_nand(b)
+
+
+    if type(exp) == AND:
+        stash[exp] = NOT(AND(NOT(AND(a, b)), NOT(AND(a, b))))
+        return NOT(AND(NOT(AND(a, b)), NOT(AND(a, b))))
+    
+    elif type(exp) == OR:
+        stash[exp] = NOT(AND(NOT(AND(a, a)), NOT(AND(b, b))))
+        return NOT(AND(NOT(AND(a, a)), NOT(AND(b, b))))
+
+def sop_to_nand(exp):
+    if len(exp.args[0].args) > 2:
+        if type(exp.args[0]) == AND:
+            done = pos_to_nand(exp.args[0])
+        else:
+            done = sop_to_nand(exp.args[0])
+    else:
+        done = dual_to_nand(exp.args[0])
+
+    for i in range(1, len(exp.args)):
+        if len(exp.args[i].args) > 2:
+            if type(exp.args[i]) == AND:
+                current = pos_to_nand(exp.args[i])
+            else:
+                current = sop_to_nand(exp.args[i])
+        else:
+            current = dual_to_nand(exp.args[i])
+
+        done = dual_to_nand(OR(done,current))
+
+    return done
+
+def pos_to_nand(exp):   
+    if len(exp.args[0].args) > 2:
+        if type(exp.args[0]) == AND:
+            done = pos_to_nand(exp.args[0])
+        else:
+            done = sop_to_nand(exp.args[0])
+    else:
+        done = dual_to_nand(exp.args[0])
+
+    for i in range(1, len(exp.args)):
+        if len(exp.args[i].args) > 2:
+            if type(exp.args[i]) == AND:
+                current = pos_to_nand(exp.args[i])
+            else:
+                current = sop_to_nand(exp.args[i])
+        else:
+            current = dual_to_nand(exp.args[i])
+
+        current = dual_to_nand(exp.args[i])
+        done = dual_to_nand(AND(done,current))
+
+    return done
 
 if __name__ == "__main__":
     import doctest
